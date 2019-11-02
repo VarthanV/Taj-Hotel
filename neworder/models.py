@@ -1,8 +1,4 @@
 from django.db import models
-
-# Create your models here.
-from django.db import models
-
 # Customer Details Model
 
 
@@ -17,16 +13,29 @@ class CustomerDetails(models.Model):
 class SubItems(models.Model):
     name = models.CharField(max_length=200)
     price = models.IntegerField()
-    quantity=models.CharField(max_length=200)
+    quantity = models.IntegerField()
 
 
 class Items(models.Model):
     name = models.CharField(max_length=200)
     price = models.IntegerField()
+
     subitems = models.ManyToManyField(SubItems)
 
 
+class OrderItem(models.Model):
+    item = models.ForeignKey(Items, on_delete=models.DO_NOTHING)
+    quantity = models.IntegerField()
+    total_price = models.IntegerField()
+
+
 class Order(models.Model):
-    items = models.ManyToManyField(Items)
+    invoice_no = models.CharField(max_length=100)
+    ordered_items= models.ManyToManyField(OrderItem)
     customer = models.ForeignKey(CustomerDetails, on_delete=models.DO_NOTHING)
-    cost = models.IntegerField()
+    advance = models.IntegerField()
+    session=models.CharField(max_length=200)
+    total = models.IntegerField()
+    balance = models.IntegerField()
+    date_placed = models.DateTimeField(auto_now_add=True)
+    date_of_delivery = models.DateTimeField()
