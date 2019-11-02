@@ -19,7 +19,7 @@ class SubItems(models.Model):
 class Items(models.Model):
     name = models.CharField(max_length=200)
     price = models.IntegerField()
-
+    total_price=models.IntegerField()
     subitems = models.ManyToManyField(SubItems)
 
 

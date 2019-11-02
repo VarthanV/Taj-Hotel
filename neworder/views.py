@@ -15,7 +15,8 @@ class ItemManipulationView(APIView):
         data = [
             {
                 'name': "Biriyani",
-                'price': 100,
+                'price': 60,
+                'totalprice':130,
                 'subitems': [
                     {
                         'name': 'Raitha',
@@ -32,6 +33,7 @@ class ItemManipulationView(APIView):
             {
                 'name': "Parotta",
                 'price': 20,
+                'total_price':80,
                 'subitems': [
                     {
                         'name': 'Raitha',
@@ -48,6 +50,7 @@ class ItemManipulationView(APIView):
             {
                 'name': "Idli",
                 'price': 50,
+                'total_price':130,
                 'subitems': [
                     {
                         'name': 'Sambar',
@@ -90,7 +93,7 @@ class OrderView(APIView):
         customer.address = request.POST.get('address')
         customer.save()
         order.customer = customer
-        items = request.POST.get('items')
+        items = list(request.POST.get('items'))
         for i in items:
             item = get_object_or_404(Items, name=i['name'])
             ordered_item = OrderItem()
