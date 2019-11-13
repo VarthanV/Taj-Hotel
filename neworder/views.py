@@ -80,8 +80,6 @@ class ItemManipulationView(APIView):
 class OrderView(APIView):
     permission_classes = (AllowAny,)
 
-    def get(self, request):
-        return HttpResponse("Get not allowed")
 
     def post(self, request):
         order = Order()
