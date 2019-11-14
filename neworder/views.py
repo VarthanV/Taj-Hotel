@@ -36,6 +36,39 @@ class ItemView(APIView):
 class OrderView(APIView):
     permission_classes = (AllowAny,)
 
+    def get(self, request):
+        return Response(
+
+            {
+                'invoice_no': order.invoice_no,
+                'ordered_items': [
+                    {
+                        'name': item.item.name,
+                        'price': item.item.price,
+                        'total_price': item.total_price,
+                        'subitems': [
+                            {
+                                'name': subitem.name,
+                                'price': subitem.price,
+                                'quantity': subitem.quantity
+                            }
+                            for subitem in item.item.subitems.all()],
+                        'session': order.session,
+                        'total': order.total,
+                        'paid_amount': order.paid_amount,
+                        'paid': order.paid,
+                        'returned_vessel': order.returned_vessel,
+                        'balance': order.balance,
+                        'date_placed': order.date_placed,
+                        'date_of_delivery': order.date_of_delivery
+
+
+                    }
+                    for item in order.ordered_items.all()]
+
+            }
+            for order in Order.objects.all())
+
     def post(self, request):
         order = Order()
         o.invoice_no = request.POST.get('invoiceNo')
