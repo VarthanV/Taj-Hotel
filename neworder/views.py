@@ -6,80 +6,35 @@ from django.shortcuts import get_object_or_404
 from .models import *
 from django.http import HttpResponse
 import uuid
+import json
 
 
-class ItemManipulationView(APIView):
+class ItemView(APIView):
     permission_classes = (AllowAny,)
 
     def get(self, request):
-        data = [
+        return Response(
             {
-                'name': "Biriyani",
-                'price': 60,
-                'totalprice':130,
+                'name': item.name,
+                'price': item.price,
+                'total_price': item.total_price,
                 'subitems': [
                     {
-                        'name': 'Raitha',
-                        'price': 30,
-                        'quantity': '100ml'
-                    },
-                    {
-                        'name': "Kuruma",
-                        'price': 40,
-                        'quantity': '30ml'
+                        'name': subitem.name,
+                        'price': subitem.price,
+                        'quantity': subitem.quantity
                     }
-                ]
-            },
-            {
-                'name': "Parotta",
-                'price': 20,
-                'total_price':80,
-                'subitems': [
-                    {
-                        'name': 'Raitha',
-                        'price': 10,
-                        'quantity': '100ml'
-                    },
-                    {
-                        'name': "Kuruma",
-                        'price': 40,
-                        'quantity': '30ml'
-                    }
-                ]
-            },
-            {
-                'name': "Idli",
-                'price': 50,
-                'total_price':130,
-                'subitems': [
-                    {
-                        'name': 'Sambar',
-                        'price': 30,
-                        'quantity': '100ml'
-                    },
-                    {
-                        'name': "Cocount Chutney",
-                        'price': 40,
-                        'quantity': '30ml'
-                    },
-                    {
-                        'name': "Kaara Chutney",
-                        "price": 60,
-                        'quantity': "40ml"
-                    }
-                ]
-            },
+                    for subitem in item.subitems.all()]
+            }
 
-        ]
-        return Response(data)
+            for item in Items.objects.all())
 
-        def post(self, request):
-            pass
+    def post(self, request):
+        pass
 
 
 class OrderView(APIView):
     permission_classes = (AllowAny,)
-
 
     def post(self, request):
         order = Order()
