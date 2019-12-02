@@ -15,6 +15,8 @@ class ItemView(APIView):
     def get(self, request):
         return Response(
             {
+
+                'pk': item.pk,
                 'name': item.name,
                 'price': item.price,
                 'total_price': item.total_price,
@@ -30,7 +32,20 @@ class ItemView(APIView):
             for item in Items.objects.all())
 
     def post(self, request):
-        pass
+        item = Items()
+        item.name = request.POST.get('name')
+        item.price = request.POST.get('price')
+        item.total_price = request.POST.get('total_price')
+        subs = request.POST.get('subitems')
+        for i in subs:
+            subitem = SubItems()
+            subitem.name = i['name']
+            subitem.price = i['price']
+            subitem.quantity = i['quantity']
+            item.subitems.add(subitem)
+            subitem.save()
+        item.save()
+        return Response({})
 
 
 class OrderView(APIView):
@@ -94,3 +109,40 @@ class OrderView(APIView):
         order.date_of_delivery = request.POST.get('deliveryDate')
         order.save()
         return Response()
+
+
+class VesselView(APIView):
+    def get(self, request):
+        return Response(
+
+            {
+                'u_id': item.u_id,
+                'name': item.name
+            }
+            for item in Vessels.objects.all())
+
+
+class ItemEditView(APIView):
+    def post(self, request, pk):
+        item = get_object_or_404(Items, pk=pk)
+        item.name = request.POST.get('name')
+        item.price = request.POST.get('price')
+        item.total_price = request.POST.get('total_price')
+        subs = request.POST.get('subitems')
+        for i in subs:
+            subitem = SubItems()
+            subitem.name = i['name']
+            subitem.price = i['price']
+            subitem.quantity = i['quantity']
+            item.subitems.add(subitem)
+            subitem.save()
+        item.save()
+
+        return Response({})
+
+
+class ItemDeleteView(APIView):
+    def post(self, request, pk):
+        item = get_object_or_404(Items, pk=pk)
+        item.delete()
+        return Response({})
