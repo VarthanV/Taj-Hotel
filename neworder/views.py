@@ -146,3 +146,20 @@ class ItemDeleteView(APIView):
         item = get_object_or_404(Items, pk=pk)
         item.delete()
         return Response({})
+
+class CustomerSearchView(APIView):
+    def get(self,request):
+        customers=CustomerDetails.objects.all()
+        return Response([
+
+                {
+                    'u_id':customer.u_id,
+                    'name':customer.name,
+                    'phone_number':customer.phone_number,
+                    'email':customer.email,
+                    'address':customer.address
+
+
+                }    
+
+        ]for customer in customers)
