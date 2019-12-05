@@ -3,7 +3,5 @@ from .import views
 urlpatterns = [
     path('items/', views.ItemView.as_view()),
     path('order/', views.OrderView.as_view()),
-    path('edit/<int:pk>/',views.ItemEditView.as_view()),
-    path('delete/<int:pk>/',views.ItemDeleteView.as_view()),
     path('customers/',views.CustomerSearchView.as_view())
 ]
