@@ -14,6 +14,7 @@ class CustomerDetails(models.Model):
 
 
 class SubItems(models.Model):
+    unique_id = models.CharField(max_length=200)
     tamil_name = models.TextField(null=True, blank=True)
     name = models.TextField()
     price = models.IntegerField()
@@ -32,6 +33,7 @@ class Vessels(models.Model):
 
 
 class Items(models.Model):
+    unique_id = models.CharField(max_length=200)
     tamil_name = models.TextField(null=True, blank=True)
     name = models.TextField()
     price = models.IntegerField()
@@ -71,9 +73,16 @@ class Order(models.Model):
 
 
 class DailyItems(models.Model):
-    item = models.OneToOneField(OrderItem, on_delete=models.DO_NOTHING)
-    date = models.DateField(auto_now_add=True)
-    session = models.CharField(max_length=500)
+    unique_id = models.CharField(max_length=200)
+    quantity = models.IntegerField()
 
     def __str__(self):
-        return self.item.name
+        return self.unique_id
+
+
+class DailySubItems(models.Model):
+    unique_id = models.CharField(max_length=200)
+    quantity = models.IntegerField()
+
+    def __str__(self):
+        return self.unique_id

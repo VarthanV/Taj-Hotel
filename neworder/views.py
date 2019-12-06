@@ -8,7 +8,7 @@ from django.http import HttpResponse
 import uuid
 import json
 from . import writecsv
-
+import datetime
 
 class ItemView(APIView):
     permission_classes = (AllowAny,)
@@ -86,16 +86,19 @@ class OrderView(APIView):
                 'invoice_no': order.invoice_no,
                 'ordered_items': [
                     {
+                        'unique_id': item.item.unique_id,
+                        'tamil_name': item.item.tamil_name,
                         'name': item.item.name,
                         'price': item.item.price,
                         'total_price': item.total_price,
                         'subitems': [
                             {
+                                'unique_id': subitem.unique_id,
                                 'name': subitem.name,
                                 'price': subitem.price,
                                 'quantity': subitem.quantity
                             }
-                            for subitem in item.subitems.all()],
+                            for subitem in item  .item.subitems.all()],
                         'session': order.session,
                         'total': order.total,
                         'paid_amount': order.paid_amount,
@@ -133,6 +136,17 @@ class OrderView(APIView):
             ordered_item.quantity = request.POST.get('quantity')
             ordered_item.total_price = request.POST.get('totalPrice')
             ordered_item.subitems = subitem
+            # Adds Item to the daily List
+            daily_item = DailyItems.get_or_create(unique_id=item['unique_id'])
+            daily_item.quantity += int(i['quantity'])
+            daily_item.session = request.POST.get('session')
+            daily_item.save()
+            # Adds Subitems to the daily list
+            daily_sub_item = DailySubItems.get_or_create(
+                unique_id=subitem['unique_id'])
+            daily_sub_item.quantity += j['quantity']
+            daily_sub_item.session = request.POST.get('session')
+            daily_sub_item.save()
             order.ordered_items.add(ordered_item)
             ordered_item.save()
 
@@ -265,3 +279,19 @@ class CustomerSearchView(APIView):
             CustomerDetails, u_id=request.POST.get('u_id'))
         customer.delete()
         return Response({})
+
+
+class DailyItemView(APIView):
+    def get(self,request):
+        items=[]
+        orders=DailyItems.objects.filter(date=datetime.date.today())
+        for order in orders:
+            item=Items.objects.get(unique_id=order.unqiue_id)
+            data={
+                'name':item.tamil_name,
+                'quantity':order.quantity
+            }
+            items.append(data)
+        return Response(items)    
+
+
