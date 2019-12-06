@@ -14,7 +14,7 @@ class CustomerDetails(models.Model):
 
 
 class SubItems(models.Model):
-    tamil_name=models.TextField(null=True,blank=True)
+    tamil_name = models.TextField(null=True, blank=True)
     name = models.TextField()
     price = models.IntegerField()
     quantity = models.IntegerField()
@@ -32,7 +32,7 @@ class Vessels(models.Model):
 
 
 class Items(models.Model):
-    tamil_name=models.TextField(null=True,blank=True)
+    tamil_name = models.TextField(null=True, blank=True)
     name = models.TextField()
     price = models.IntegerField()
     total_price = models.IntegerField()
@@ -44,6 +44,7 @@ class Items(models.Model):
 
 class OrderItem(models.Model):
     item = models.ForeignKey(Items, on_delete=models.DO_NOTHING)
+    subitems = models.ForeignKey(SubItems, on_delete=models.DO_NOTHING)
     quantity = models.IntegerField()
     total_price = models.IntegerField()
 
@@ -68,8 +69,11 @@ class Order(models.Model):
     def __str__(self):
         return self.invoice_no
 
-class DailyItem(models.Model):
-    date=models.DateField(auto_now_add=True)
-    session=models.CharField(max_length=500)
-    items=models.ManyToManyField(Items)
-    
+
+class DailyItems(models.Model):
+    item = models.OneToOneField(OrderItem, on_delete=models.DO_NOTHING)
+    date = models.DateField(auto_now_add=True)
+    session = models.CharField(max_length=500)
+
+    def __str__(self):
+        return self.item.name

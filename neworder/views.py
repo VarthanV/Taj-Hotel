@@ -95,7 +95,7 @@ class OrderView(APIView):
                                 'price': subitem.price,
                                 'quantity': subitem.quantity
                             }
-                            for subitem in item.item.subitems.all()],
+                            for subitem in item.subitems.all()],
                         'session': order.session,
                         'total': order.total,
                         'paid_amount': order.paid_amount,
@@ -124,14 +124,18 @@ class OrderView(APIView):
         customer.save()
         order.customer = customer
         items = list(request.POST.get('items'))
-        for i in items:
+        subitems = list(request.POST.get('subitems'))
+        for i, j in zip(items, subitems):
             item = get_object_or_404(Items, name=i['name'])
+            subitem = get_object_or_404(SubItems, name=j['name'])
             ordered_item = OrderItem()
             ordered_item.item = item
             ordered_item.quantity = request.POST.get('quantity')
             ordered_item.total_price = request.POST.get('totalPrice')
+            ordered_item.subitems = subitem
             order.ordered_items.add(ordered_item)
             ordered_item.save()
+
         order.adv = request.POST.get('adv')
         order.session = request.POST.get('session')
         order.total = request.POST.get('total')
