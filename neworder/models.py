@@ -62,8 +62,8 @@ class Order(models.Model):
     session = models.TextField()
     total = models.IntegerField()
     paid_amount = models.IntegerField()
-    paid = models.BooleanField()
-    returned_vessel = models.BooleanField()
+    paid = models.BooleanField(default=False)
+    returned_vessel = models.BooleanField(default=False)
     balance = models.IntegerField()
     date_placed = models.DateTimeField(auto_now_add=True)
     date_of_delivery = models.DateTimeField()
@@ -75,6 +75,8 @@ class Order(models.Model):
 class DailyItems(models.Model):
     unique_id = models.CharField(max_length=200)
     quantity = models.IntegerField()
+    date=models.DateField(auto_now_add=True,null=True,blank=True)
+    session=models.CharField(max_length=100,blank=True,null=True)
 
     def __str__(self):
         return self.unique_id
@@ -83,6 +85,8 @@ class DailyItems(models.Model):
 class DailySubItems(models.Model):
     unique_id = models.CharField(max_length=200)
     quantity = models.IntegerField()
+    session=models.CharField(max_length=100,blank=True,null=True)
+    date=models.DateField(auto_now_add=True,null=True,blank=True)
 
     def __str__(self):
         return self.unique_id

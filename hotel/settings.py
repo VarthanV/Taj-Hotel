@@ -34,7 +34,7 @@ INSTALLED_APPS = [
 
     'django.contrib.admin',
     'neworder',
-    'history',
+    
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
@@ -62,6 +62,7 @@ CORS_ORIGIN_WHITELIST = [
     "https://example.com",
     "https://sub.example.com",
     "http://localhost:8080",
+    "http://localhost:3000",
     "http://127.0.0.1:9000"
 ]
 
@@ -119,7 +120,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 

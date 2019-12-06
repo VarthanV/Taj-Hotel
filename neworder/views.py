@@ -9,6 +9,7 @@ import uuid
 import json
 from . import writecsv
 import datetime
+import ast
 
 
 class ItemView(APIView):
@@ -18,15 +19,16 @@ class ItemView(APIView):
     def get(self, request):
         return Response(
             {
-
+                'unique_id': item.unique_id,
                 'pk': item.pk,
                 'name': item.name,
-                'price': item.price,
-                'total_price': item.total_price,
+                'tamil_name': item.tamil_name,
+                'price': str(item.price),
+                'total_price': str(item.total_price),
                 'subitems': [
                     {
                         'name': subitem.name,
-                        'price': subitem.price,
+                        'price': str(subitem.price),
                         'quantity': subitem.quantity
                     }
                     for subitem in item.subitems.all()]
@@ -53,16 +55,16 @@ class ItemView(APIView):
 
         # Edit Existing Item
     def put(self, request):
-        item = get_object_or_404(Items, pk=request.POST.get('pk'))
+        item = get_object_or_404(Items, pk=int(request.POST.get('pk')))
         item.name = request.POST.get('name')
-        item.price = request.POST.get('price')
-        item.total_price = request.POST.get('total_price')
+        item.price = int(request.POST.get('price'))
+        item.total_price = int(request.POST.get('total_price'))
         subs = request.POST.get('subitems')
         for i in subs:
             subitem = SubItems()
             subitem.name = i['name']
-            subitem.price = i['price']
-            subitem.quantity = i['quantity']
+            subitem.price = int(i['price'])
+            subitem.quantity = int(i['quantity'])
             item.subitems.add(subitem)
             subitem.save()
         item.save()
@@ -71,7 +73,7 @@ class ItemView(APIView):
     # Delete Item
 
     def patch(self, request):
-        item = get_object_or_404(Items, pk=request.POST.get('pk'))
+        item = get_object_or_404(Items, pk=int(request.POST.get('pk')))
         item.delete()
         return Response({})
 
@@ -118,8 +120,10 @@ class OrderView(APIView):
     # Place New Order
 
     def post(self, request):
+        print(request.POST)
+
         order = Order()
-        o.invoice_no = request.POST.get('invoiceNo')
+        order.invoice_no = request.POST.get('invoiceNo')
         customer = CustomerDetails()
         customer.u_id = uuid.uuid4()
         customer.phone_number = request.POST.get('phoneNum')
@@ -127,35 +131,53 @@ class OrderView(APIView):
         customer.address = request.POST.get('address')
         customer.save()
         order.customer = customer
-        items = list(request.POST.get('items'))
-        subitems = list(request.POST.get('subitems'))
+
+        items = json.loads(request.POST.get('items'))
+        subitems = json.loads(request.POST.get('subitems'))
+
+        print(subitems)
         for i, j in zip(items, subitems):
-            item = get_object_or_404(Items, name=i['name'])
-            subitem = get_object_or_404(SubItems, name=j['name'])
+            # j=json.loads(j)
+
+            item = get_object_or_404(Items, name=i['item'])
+            subitem = get_object_or_404(SubItems, name=j['item'])
+            subitem.quantity = j['quantity']
+            subitem.price = j['rate']
+            subitem.save()
             ordered_item = OrderItem()
             ordered_item.item = item
-            ordered_item.quantity = request.POST.get('quantity')
-            ordered_item.total_price = request.POST.get('totalPrice')
+            ordered_item.quantity = int(i['quantity'])
+            ordered_item.total_price = int(i['amount'])
             ordered_item.subitems = subitem
+            ordered_item.save()
+            order.advance = request.POST.get('adv')
+            order.session = request.POST.get('session')
+            order.total = int(request.POST.get('total'))
+            order.date_of_delivery = request.POST.get('deliveryDate')
+            order.paid_amount=int(request.POST.get('total'))
+            order.paid=False
+            order.balance=int(request.POST.get('total'))-int(request.POST.get('adv'))
+            order.save()
+            order.ordered_items.add(ordered_item)
+
             # Adds Item to the daily List
-            daily_item = DailyItems.get_or_create(unique_id=item['unique_id'])
-            daily_item.quantity += int(i['quantity'])
-            daily_item.session = request.POST.get('session')
+            print(i['quantity'])
+            daily_item, dummy = DailyItems.objects.get_or_create(
+
+
+                unique_id=i['unique_id'],
+
+                quantity=int(i['quantity']),
+                session=request.POST['session']
+            )
+
             daily_item.save()
             # Adds Subitems to the daily list
-            daily_sub_item = DailySubItems.get_or_create(
-                unique_id=subitem['unique_id'])
-            daily_sub_item.quantity += j['quantity']
-            daily_sub_item.session = request.POST.get('session')
+            daily_sub_item, dummy = DailySubItems.objects.get_or_create(
+                unique_id=j['unique_id'], quantity=int(j['quantity']), session=request.POST.get('session'))
             daily_sub_item.save()
-            order.ordered_items.add(ordered_item)
-            ordered_item.save()
+        print(request.POST['adv'])
 
-        order.adv = request.POST.get('adv')
-        order.session = request.POST.get('session')
-        order.total = request.POST.get('total')
-        order.date_of_delivery = request.POST.get('deliveryDate')
-        order.save()
         writecsv.write_order_csv(
             {
                 'InvoiceNo': order.invoice_no,
@@ -171,7 +193,7 @@ class OrderView(APIView):
 
     def put(self, request):
         order = get_object_or_404(
-            Order, invoice_no=request.POST.get('invoice_no'))
+            Order, invoice_no=request.POST.get('invoiceNo'))
         customer = CustomerDetails()
         customer.u_id = uuid.uuid4()
         customer.phone_number = request.POST.get('phoneNum')
@@ -184,13 +206,13 @@ class OrderView(APIView):
             item = get_object_or_404(Items, name=i['name'])
             ordered_item = OrderItem()
             ordered_item.item = item
-            ordered_item.quantity = request.POST.get('quantity')
-            ordered_item.total_price = request.POST.get('totalPrice')
+            ordered_item.quantity = int(request.POST.get('quantity'))
+            ordered_item.total_price = int(request.POST.get('totalPrice'))
             order.ordered_items.add(ordered_item)
             ordered_item.save()
-        order.adv = request.POST.get('adv')
-        order.session = request.POST.get('session')
-        order.total = request.POST.get('total')
+        order.adv = int(request.POST.get('adv'))
+        order.session = int(request.POST.get('session'))
+        order.total = int(request.POST.get('total'))
         order.date_of_delivery = request.POST.get('deliveryDate')
         order.save()
         return Response()
@@ -239,7 +261,7 @@ class CustomerSearchView(APIView):
     # Get Customers
     def get(self, request):
         customers = CustomerDetails.objects.all()
-        return Response([
+        return Response(
 
             {
                 'u_id': customer.u_id,
@@ -251,7 +273,7 @@ class CustomerSearchView(APIView):
 
             }
 
-        ]for customer in customers)
+            for customer in customers)
     # Add Customers
 
     def post(self, request):
@@ -287,7 +309,7 @@ class DailyItemView(APIView):
         items = []
         orders = DailyItems.objects.filter(date=datetime.date.today())
         for order in orders:
-            item = Items.objects.get(unique_id=order.unqiue_id)
+            item = Items.objects.get(unique_id=order.unique_id)
             data = {
                 'name': item.tamil_name,
                 'quantity': order.quantity
@@ -301,10 +323,22 @@ class DailySubItemView(APIView):
         sub_items = []
         orders = DailySubItems.objects.filter(date=datetime.date.today())
         for order in orders:
-            sub_item = SubItems.objects.get(unique_id=order.unqiue_id)
+            sub_item = SubItems.objects.get(unique_id=order.unique_id)
             data = {
                 'name': sub_item.tamil_name,
                 'quantity': order.quantity
             }
             sub_items.append(data)
         return Response(sub_items)
+
+
+class SubItemsView(APIView):
+    def get(self, request):
+        return Response({
+
+            'unique_id': subitem.unique_id,
+            'title': subitem.name,
+            'rate': subitem.price,
+
+
+        }for subitem in SubItems.objects.all())
