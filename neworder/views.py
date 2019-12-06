@@ -10,6 +10,7 @@ import json
 from . import writecsv
 import datetime
 
+
 class ItemView(APIView):
     permission_classes = (AllowAny,)
     # Get Items
@@ -282,16 +283,28 @@ class CustomerSearchView(APIView):
 
 
 class DailyItemView(APIView):
-    def get(self,request):
-        items=[]
-        orders=DailyItems.objects.filter(date=datetime.date.today())
+    def get(self, request):
+        items = []
+        orders = DailyItems.objects.filter(date=datetime.date.today())
         for order in orders:
-            item=Items.objects.get(unique_id=order.unqiue_id)
-            data={
-                'name':item.tamil_name,
-                'quantity':order.quantity
+            item = Items.objects.get(unique_id=order.unqiue_id)
+            data = {
+                'name': item.tamil_name,
+                'quantity': order.quantity
             }
             items.append(data)
-        return Response(items)    
+        return Response(items)
 
 
+class DailySubItemView(APIView):
+    def get(self, request):
+        sub_items = []
+        orders = DailySubItems.objects.filter(date=datetime.date.today())
+        for order in orders:
+            sub_item = SubItems.objects.get(unique_id=order.unqiue_id)
+            data = {
+                'name': sub_item.tamil_name,
+                'quantity': order.quantity
+            }
+            sub_items.append(data)
+        return Response(sub_items)
