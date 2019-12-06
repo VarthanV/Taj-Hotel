@@ -7,6 +7,7 @@ from .models import *
 from django.http import HttpResponse
 import uuid
 import json
+from . import writecsv
 
 
 class ItemView(APIView):
@@ -68,7 +69,7 @@ class ItemView(APIView):
         return Response({})
     # Delete Item
 
-    def delete(self, request):
+    def patch(self, request):
         item = get_object_or_404(Items, pk=request.POST.get('pk'))
         item.delete()
         return Response({})
@@ -136,6 +137,16 @@ class OrderView(APIView):
         order.total = request.POST.get('total')
         order.date_of_delivery = request.POST.get('deliveryDate')
         order.save()
+        writecsv.write_order_csv(
+            {
+                'InvoiceNo': order.invoice_no,
+                'CustomerId': customer.u_id,
+                'CustomerName': customer.name,
+                'CustomerNumber': customer.phone_number,
+                'TotalAmount': order.total
+            }
+        )
+
         return Response()
     # Edit Order
 
@@ -166,7 +177,7 @@ class OrderView(APIView):
         return Response()
     # Delete Order
 
-    def delete(self, request):
+    def patch(self, request):
         order = get_object_or_404(
             Order, invoice_no=request.POST.get('invoice_no'))
         order.delete()
@@ -199,7 +210,7 @@ class VesselView(APIView):
         return Response({})
     # Delete Vessel
 
-    def delete(self, request):
+    def patch(self, request):
         vessel = get_object_or_404(Vessels, u_id=request.POST.get('u_id'))
         vessel.delete()
         return Response({})
@@ -245,7 +256,7 @@ class CustomerSearchView(APIView):
         return Response({})
     # Delete Customers
 
-    def delete(self, request):
+    def patch(self, request):
         customer = get_object_or_404(
             CustomerDetails, u_id=request.POST.get('u_id'))
         customer.delete()
