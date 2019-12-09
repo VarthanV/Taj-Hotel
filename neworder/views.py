@@ -154,28 +154,13 @@ class OrderView(APIView):
             order.session = request.POST.get('session')
             order.total = int(request.POST.get('total'))
             order.date_of_delivery = request.POST.get('deliveryDate')
-            order.paid_amount=int(request.POST.get('total'))
-            order.paid=False
-            order.balance=int(request.POST.get('total'))-int(request.POST.get('adv'))
+            order.paid_amount = int(request.POST.get('total'))
+            order.paid = False
+            order.balance = int(request.POST.get('total')) - \
+                int(request.POST.get('adv'))
             order.save()
             order.ordered_items.add(ordered_item)
 
-            # Adds Item to the daily List
-            print(i['quantity'])
-            daily_item, dummy = DailyItems.objects.get_or_create(
-
-
-                unique_id=i['unique_id'],
-
-                quantity=int(i['quantity']),
-                session=request.POST['session']
-            )
-
-            daily_item.save()
-            # Adds Subitems to the daily list
-            daily_sub_item, dummy = DailySubItems.objects.get_or_create(
-                unique_id=j['unique_id'], quantity=int(j['quantity']), session=request.POST.get('session'))
-            daily_sub_item.save()
         print(request.POST['adv'])
 
         writecsv.write_order_csv(
@@ -306,16 +291,17 @@ class CustomerSearchView(APIView):
 
 class DailyItemView(APIView):
     def get(self, request):
-        items = []
-        orders = DailyItems.objects.filter(date=datetime.date.today())
+        today_items = {}
+        orders = Order.objects.filter(date_of_delivery=datetime.date.today())
         for order in orders:
-            item = Items.objects.get(unique_id=order.unique_id)
-            data = {
-                'name': item.tamil_name,
-                'quantity': order.quantity
-            }
-            items.append(data)
-        return Response(items)
+            for ort in order.ordered_items.all():
+                if today_items.get(ort.item.name):
+                    today_items.get(ort.item.name)["quantity"] += ort.quantity
+                else:
+                    today_items[ort.item.name] = {
+                        "tamil_name": ort.item.tamil_name, "quantity": ort.quantity}
+        print(today_items)
+        return Response()
 
 
 class DailySubItemView(APIView):
