@@ -87,8 +87,14 @@ class OrderView(APIView):
             {
                 'name': order.customer.name,
                 'invoice_no': order.invoice_no,
+<<<<<<< HEAD
                 'address': order.customer.address,
                 'phone_num': order.customer.phone_number,
+=======
+                'phone_num': order.customer.phone_number,
+                'address': order.customer.address,
+
+>>>>>>> c27b0082056f4046bfd20335d73aae5a0e201635
                 'ordered_items': [
                     {
                         'unique_id': item.item.unique_id,
@@ -157,7 +163,6 @@ class OrderView(APIView):
             subitem.quantity = j['quantity']
             subitem.price = j['rate']
             subitem.save()
-
             ordered_item = OrderItem()
             ordered_item.item = item
             ordered_item.quantity = int(i['quantity'])
@@ -303,6 +308,7 @@ class CustomerSearchView(APIView):
 
 
 class DailyItemView(APIView):
+<<<<<<< HEAD
     def post(self, request):
         items ={
             'fn':[],
@@ -326,6 +332,20 @@ class DailyItemView(APIView):
         
         
 
+=======
+    def get(self, request):
+        today_items = {}
+        orders = Order.objects.filter(date_of_delivery=datetime.date.today())
+        for order in orders:
+            for ort in order.ordered_items.all():
+                if today_items.get(ort.item.name):
+                    today_items.get(ort.item.name)["quantity"] += ort.quantity
+                else:
+                    today_items[ort.item.name] = {
+                        "tamil_name": ort.item.tamil_name, "quantity": ort.quantity}
+        print(today_items)
+        return Response()
+>>>>>>> c27b0082056f4046bfd20335d73aae5a0e201635
 
 
 class DailySubItemView(APIView):
