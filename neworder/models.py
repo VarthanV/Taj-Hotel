@@ -76,7 +76,6 @@ class Order(models.Model):
         return self.invoice_no
 
 
-<<<<<<< HEAD
 class DailyItems(models.Model):
     unique_id = models.CharField(max_length=200)
     quantity = models.IntegerField(default=0)
@@ -92,23 +91,6 @@ class DailySubItems(models.Model):
     quantity = models.IntegerField()
     session=models.CharField(max_length=100,blank=True,null=True)
     date=models.DateField(auto_now_add=True,null=True,blank=True)
-=======
-# class DailyItems(models.Model):
-#     unique_id = models.CharField(max_length=200)
-#     quantity = models.IntegerField()
-#     date=models.DateField(auto_now_add=True,null=True,blank=True)
-#     session=models.CharField(max_length=100,blank=True,null=True)
-
-#     def __str__(self):
-#         return self.unique_id
-
-
-# class DailySubItems(models.Model):
-#     unique_id = models.CharField(max_length=200)
-#     quantity = models.IntegerField()
-#     session=models.CharField(max_length=100,blank=True,null=True)
-#     date=models.DateField(auto_now_add=True,null=True,blank=True)
->>>>>>> c27b0082056f4046bfd20335d73aae5a0e201635
 
 #     def __str__(self):
 #         return self.unique_id

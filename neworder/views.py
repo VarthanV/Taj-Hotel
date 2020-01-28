@@ -12,6 +12,42 @@ import datetime
 import ast
 
 
+class LoginView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+
+        user = User.objects.get(email=request.POST.get('email'))
+        if user is None:
+            raise SuspiciousOperation
+
+        user = authenticate(username=user.username,
+                            password=request.POST.get('password'))
+        if not user:
+            raise SuspiciousOperation
+        login(request, user)
+        token, dummy = Token.objects.get_or_create(user=user)
+        profile = Profile.objects.get(user=user)
+        profile.device_id = request.POST.get('deviceid')
+        profile.save()
+        return Response({'username': user.username, 'email': user.email, 'token': token.key, 'pk': user.pk})
+
+
+class RegisterView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        if User.objects.filter(username=request.POST.filter('username')).exists() or User.objects.filter(username=request.POST.get('email')).exists():
+            raise SuspiciousOperation
+        else:
+            user = User()
+            user.email = request.POST.get('email')
+            user.username = request.POST.get('username')
+            user.set_password(request.POST.get('password'))
+            user.save()
+            return Response({'registered': True})
+
+
 class ItemView(APIView):
     permission_classes = (AllowAny,)
     # Get Items
@@ -87,14 +123,8 @@ class OrderView(APIView):
             {
                 'name': order.customer.name,
                 'invoice_no': order.invoice_no,
-<<<<<<< HEAD
                 'address': order.customer.address,
                 'phone_num': order.customer.phone_number,
-=======
-                'phone_num': order.customer.phone_number,
-                'address': order.customer.address,
-
->>>>>>> c27b0082056f4046bfd20335d73aae5a0e201635
                 'ordered_items': [
                     {
                         'unique_id': item.item.unique_id,
@@ -170,14 +200,12 @@ class OrderView(APIView):
             ordered_item.subitems = subitem
             ordered_item.save()
             order.ordered_items.add(ordered_item)
-            d_item,created =DailyItems.objects.get_or_create(unique_id= item.unique_id,date=request.POST.get('deliveryDate'),session =order.session.lower())
-            d_item.quantity+=int(i['quantity'])
+            d_item, created = DailyItems.objects.get_or_create(
+                unique_id=item.unique_id, date=request.POST.get('deliveryDate'), session=order.session.lower())
+            d_item.quantity += int(i['quantity'])
             d_item.save()
-        
-       
-        #order.save()
-           
-        
+
+        # order.save()
 
         print(request.POST['adv'])
 
@@ -308,12 +336,11 @@ class CustomerSearchView(APIView):
 
 
 class DailyItemView(APIView):
-<<<<<<< HEAD
     def post(self, request):
-        items ={
-            'fn':[],
-            'an':[],
-            'eve':[]
+        items = {
+            'fn': [],
+            'an': [],
+            'eve': []
         }
         orders = DailyItems.objects.filter(date=request.POST.get('date'))
         for order in orders:
@@ -324,28 +351,8 @@ class DailyItemView(APIView):
             }
             items[order.session].append(data)
 
-        
-        print(items)    
+        print(items)
         return Response(items)
-        
-        
-        
-        
-
-=======
-    def get(self, request):
-        today_items = {}
-        orders = Order.objects.filter(date_of_delivery=datetime.date.today())
-        for order in orders:
-            for ort in order.ordered_items.all():
-                if today_items.get(ort.item.name):
-                    today_items.get(ort.item.name)["quantity"] += ort.quantity
-                else:
-                    today_items[ort.item.name] = {
-                        "tamil_name": ort.item.tamil_name, "quantity": ort.quantity}
-        print(today_items)
-        return Response()
->>>>>>> c27b0082056f4046bfd20335d73aae5a0e201635
 
 
 class DailySubItemView(APIView):
@@ -373,17 +380,19 @@ class SubItemsView(APIView):
 
         }for subitem in SubItems.objects.all())
 
-class OrderByIdView(APIView):
-    def get(self,request):
 
-        order = get_object_or_404(Order,invoice_no = request.GET.get('invoice_no'))
+class OrderByIdView(APIView):
+    def get(self, request):
+
+        order = get_object_or_404(
+            Order, invoice_no=request.GET.get('invoice_no'))
         return Response({
-                'name': order.customer.name,
-                'invoice_no': order.invoice_no,
-                'address': order.customer.address,
-                'phone_num': order.customer.phone_number,
-                'ordered_items': [
-                    {
+            'name': order.customer.name,
+            'invoice_no': order.invoice_no,
+            'address': order.customer.address,
+            'phone_num': order.customer.phone_number,
+            'ordered_items': [
+                {
                         'unique_id': item.item.unique_id,
                         'tamil_name': item.item.tamil_name,
                         'name': item.item.name,
@@ -400,17 +409,16 @@ class OrderByIdView(APIView):
                             for subitem in item  .item.subitems.all()],
 
 
-                    }
-                    for item in order.ordered_items.all()],
-                'session': order.session,
-                'total': order.total,
-                'paid_amount': order.paid_amount,
-                'paid': order.paid,
-                'returned_vessel': order.returned_vessel,
-                'balance': order.balance,
-                'date_placed': order.date_placed,
-                'date_of_delivery': order.date_of_delivery
+                        }
+                for item in order.ordered_items.all()],
+            'session': order.session,
+            'total': order.total,
+            'paid_amount': order.paid_amount,
+            'paid': order.paid,
+            'returned_vessel': order.returned_vessel,
+            'balance': order.balance,
+            'date_placed': order.date_placed,
+            'date_of_delivery': order.date_of_delivery
 
 
-            })
-    
+        })
